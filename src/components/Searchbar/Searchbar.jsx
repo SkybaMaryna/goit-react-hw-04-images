@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import { useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 import {
   StyledSearchButton,
@@ -8,44 +8,38 @@ import {
   StyledSearchbar,
 } from './Searchbar.styled';
 
-export class Searchbar extends Component {
-  state = {
-    inputValue: '',
-  };
+export const Searchbar = ({ onSubmit }) => {
+  const [inputValue, setInputValue] = useState('');
 
-  handleChange = e => {
+  const handleChange = e => {
     const { value } = e.target;
-    this.setState({ inputValue: value.toLowerCase().trim() });
+    setInputValue(value.toLowerCase().trim());
   };
 
-  handleSubmit = e => {
-    const { inputValue } = this.state;
+  const handleSubmit = e => {
     e.preventDefault();
-    this.props.onSubmit(inputValue);
+    onSubmit(inputValue);
   };
 
-  render() {
-    const { inputValue } = this.state;
-    return (
-      <StyledSearchbar>
-        <StyledSearchForm onSubmit={this.handleSubmit}>
-          <StyledSearchButton type="submit">
-            <FiSearch />
-          </StyledSearchButton>
+  return (
+    <StyledSearchbar>
+      <StyledSearchForm onSubmit={handleSubmit}>
+        <StyledSearchButton type="submit">
+          <FiSearch />
+        </StyledSearchButton>
 
-          <StyledSearchInput
-            value={inputValue}
-            type="text"
-            autocomplete="off"
-            autoFocus
-            placeholder="Search images and photos"
-            onChange={this.handleChange}
-          />
-        </StyledSearchForm>
-      </StyledSearchbar>
-    );
-  }
-}
+        <StyledSearchInput
+          value={inputValue}
+          type="text"
+          autocomplete="off"
+          autoFocus
+          placeholder="Search images and photos"
+          onChange={handleChange}
+        />
+      </StyledSearchForm>
+    </StyledSearchbar>
+  );
+};
 
 Searchbar.propTypes = {
   onSubmit: PropTypes.func.isRequired,

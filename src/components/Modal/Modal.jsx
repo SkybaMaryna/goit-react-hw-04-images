@@ -1,36 +1,34 @@
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { Component } from 'react';
+import { useEffect } from 'react';
 import { StyledModal, StyledOverlay } from './Modal.styled';
 
 const modalDiv = document.querySelector('#modal');
 
-export class Modal extends Component {
-  componentDidMount() {
-    document.addEventListener('keydown', this.handleKeydown);
-  }
+export const Modal = ({ onBackdropClick, tags, largeImg }) => {
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeydown);
 
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.handleKeydown);
-  }
+    return () => {
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  }, []);
 
-  handleKeydown = e => {
+  const handleKeydown = e => {
     if (e.key === 'Escape') {
       this.props.closeModal();
     }
   };
 
-  render() {
-    return ReactDOM.createPortal(
-      <StyledOverlay onClick={this.props.onBackdropClick}>
-        <StyledModal>
-          <img src={this.props.largeImg} alt={this.props.tags} />
-        </StyledModal>
-      </StyledOverlay>,
-      modalDiv
-    );
-  }
-}
+  return ReactDOM.createPortal(
+    <StyledOverlay onClick={onBackdropClick}>
+      <StyledModal>
+        <img src={largeImg} alt={tags} />
+      </StyledModal>
+    </StyledOverlay>,
+    modalDiv
+  );
+};
 
 Modal.propTypes = {
   largeImg: PropTypes.string.isRequired,

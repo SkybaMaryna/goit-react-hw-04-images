@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Button } from './Button/Button';
@@ -6,86 +6,79 @@ import { getImages } from 'services/api';
 import { ThreeDots } from 'react-loader-spinner';
 import { Modal } from './Modal/Modal';
 
-export class App extends Component {
-  state = {
-    inputValue: '',
-    images: [],
-    loading: false,
-    error: '',
-    page: 1,
-    largeImg: null,
-    tags: null,
-    showModal: false,
-    totalImages: null,
-  };
+export const App = () => {
+  const [inputValue, setInputValue] = useState('');
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [largeImg, setLargeImg] = useState(null);
+  const [tags, setTags] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [totalImages, setTotalImages] = useState(null);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { inputValue, page } = this.state;
-    if (prevState.inputValue !== inputValue || prevState.page !== page) {
-      try {
-        this.setState({ loading: true });
-        const imgObj = await getImages(inputValue, page);
-
-        this.setState(prevState => ({
-          images: [...prevState.images, ...imgObj.hits],
-          totalImages: imgObj.totalHits,
-        }));
-      } catch (error) {
-        this.setState({ error });
-      } finally {
-        this.setState({ loading: false });
-      }
+  useEffect(() => {
+    if (inputValue === '') {
+      return;
     }
-  }
+    setLoading(true);
+    getImages(inputValue, page)
+      .then(data => {
+        setImages(prevState => [...prevState, ...data.hits]);
+        setTotalImages(data.totalHits);
+      })
+      .catch(error => setError(error.message))
+      .finally(() => setLoading(false));
+  }, [inputValue, page]);
 
-  handleSearch = data => {
-    this.setState({ inputValue: data, images: [], page: 1 });
+  const handleSearch = data => {
+    setInputValue(data);
+    setImages([]);
+    setPage(1);
   };
 
-  handleLoad = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const handleLoad = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  openModal = (largeImg, tags) => {
-    this.setState({ largeImg, tags, showModal: true });
+  const openModal = (largeImg, tags) => {
+    setLargeImg(largeImg);
+    setTags(tags);
+    setShowModal(true);
   };
 
-  closeModal = () => {
-    this.setState({ showModal: false });
+  const closeModal = () => {
+    setShowModal(false);
   };
 
-  onBackdropClick = e => {
+  const onBackdropClick = e => {
     if (e.target === e.currentTarget) {
-      this.setState({ showModal: false });
+      setShowModal(false);
     }
   };
 
-  render() {
-    const { images, loading, largeImg, tags, showModal, totalImages } =
-      this.state;
-    return (
-      <div>
-        <Searchbar onSubmit={this.handleSearch} />
+  return (
+    <div>
+      <Searchbar onSubmit={handleSearch} />
 
-        {loading && <ThreeDots />}
+      {loading && <ThreeDots />}
 
-        {images.length !== 0 && (
-          <ImageGallery images={images} openModal={this.openModal} />
-        )}
+      {images.length !== 0 && (
+        <ImageGallery images={images} openModal={openModal} />
+      )}
 
-        {images.length !== 0 && totalImages !== images.length && (
-          <Button onLoadMore={this.handleLoad} />
-        )}
+      {images.length !== 0 && totalImages !== images.length && (
+        <Button onLoadMore={handleLoad} />
+      )}
 
-        {showModal && (
-          <Modal
-            largeImg={largeImg}
-            tags={tags}
-            onBackdropClick={this.onBackdropClick}
-            closeModal={this.closeModal}
-          />
-        )}
-      </div>
-    );
-  }
-}
+      {showModal && (
+        <Modal
+          largeImg={largeImg}
+          tags={tags}
+          onBackdropClick={onBackdropClick}
+          closeModal={closeModal}
+        />
+      )}
+    </div>
+  );
+};
